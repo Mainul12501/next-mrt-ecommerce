@@ -31,9 +31,18 @@ class Alfanet extends AbstractDriver
             $sender->setMobile($to);
             $sender->setMessage($message);
             $sender->setQueue(false);
-            $sender->setConfig([
+
+            $config = [
                 'api_key' => $apiKey,
-            ]);
+            ];
+
+            // Add sender_id if configured
+            $from = $this->getFrom();
+            if ($from) {
+                $config['sender_id'] = $from;
+            }
+
+            $sender->setConfig($config);
 
             $result = $sender->send();
 

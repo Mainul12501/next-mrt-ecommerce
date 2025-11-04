@@ -1,0 +1,21 @@
+{
+    "name": "botble/facebook-conversions-api",
+    "description": "Facebook Conversions API integration for tracking e-commerce events",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Admin",
+            "email": "admin@example.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Botble\\FacebookConversionsApi\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.1",
+        "esign/laravel-conversions-api": "^2.6.0"
+    }
+}

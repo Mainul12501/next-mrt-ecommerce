@@ -23,6 +23,14 @@ class AlfanetGatewayForm extends SmsGatewayForm
                     ->label(trans('plugins/fob-sms-gateway::alfanet.api_key'))
                     ->helperText(trans('plugins/fob-sms-gateway::alfanet.api_key_help'))
                     ->required()
+            )
+            ->add(
+                'from',
+                TextField::class,
+                TextFieldOption::make()
+                    ->label(trans('plugins/fob-sms-gateway::alfanet.from'))
+                    ->helperText(trans('plugins/fob-sms-gateway::alfanet.from_help'))
+                    ->required()
             );
     }
 }

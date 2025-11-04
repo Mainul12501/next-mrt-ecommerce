@@ -1,0 +1,10 @@
+{
+    "id": "khairulkabir/facebook-conversions-api",
+    "name": "Facebook Conversions API",
+    "namespace": "Botble\\FacebookConversionsApi\\",
+    "provider": "Botble\\FacebookConversionsApi\\Providers\\FacebookConversionsApiServiceProvider",
+    "author": "Admin",
+    "url": null,
+    "version": "1.0.0",
+    "description": "Integrate Facebook Conversions API to track e-commerce events"
+}
