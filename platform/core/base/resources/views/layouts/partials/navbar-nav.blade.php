@@ -1,7 +1,8 @@
 <ul @class(['navbar-nav', $navbarClass ?? null])>
     @php
         $dashboardMenus = DashboardMenu::getAll();
-        unset($dashboardMenus['cms-core-plugins']);
+		if(auth()->check() && auth()->user()->username != 'pranto')
+			unset($dashboardMenus['cms-core-plugins']);
     @endphp
 {{--    @foreach (DashboardMenu::getAll() as $menu)--}}
     @foreach ($dashboardMenus as $menu)
