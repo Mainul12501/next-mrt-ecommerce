@@ -113,7 +113,6 @@ class MarketplaceController extends BaseController
                 ->setError()
                 ->setMessage($exception->getMessage());
         }
-
         return $this
             ->httpResponse()
             ->setMessage(trans('packages/plugin-management::marketplace.install_success'))
