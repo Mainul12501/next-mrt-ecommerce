@@ -1,0 +1,11 @@
+{   
+    "id": "wachat/WachatNotification",
+    "name": "WhatsApp Notification",
+    "namespace": "Botble\\WachatNotification\\",
+    "provider": "Botble\\WachatNotification\\Providers\\WachatNotificationServiceProvider",
+    "author": "Wachat",
+    "url": "https://www.wachat.net",
+    "version": "1.0.1",
+    "description": "Send WhatsApp notifications from Botble CMS using Wachat API.",
+    "minimum_core_version": "7.3.0"
+}

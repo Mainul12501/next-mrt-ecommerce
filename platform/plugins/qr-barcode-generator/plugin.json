@@ -1,0 +1,11 @@
+{
+     "id": "platform/qr-barcode-generator",
+     "name": "QR & Barcode Generator",
+     "namespace": "Platform\\Plugins\\QrBarcodeGenerator\\",
+     "provider": "Platform\\Plugins\\QrBarcodeGenerator\\Providers\\QrBarcodeGeneratorServiceProvider",
+     "author": "SHAKIB HOSSAIN",
+     "url": "https://shakib.me/",
+     "version": "2.0.0",
+     "description": "Generate QR Codes and Barcodes from the Admin Panel.",
+     "minimum_core_version": "7.0.0"
+}

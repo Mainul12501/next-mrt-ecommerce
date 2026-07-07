@@ -1,0 +1,19 @@
+{
+     "name": "platform/qr-barcode-generator",
+     "description": "QR & Barcode Generator for Botble CMS",
+     "type": "botble-plugin",
+     "require": {
+     },
+     "autoload": {
+          "psr-4": {
+               "Platform\\Plugins\\QrBarcodeGenerator\\": "src"
+          }
+     },
+     "extra": {
+          "laravel": {
+               "providers": [
+                    "Platform\\Plugins\\QrBarcodeGenerator\\Providers\\QrBarcodeGeneratorServiceProvider"
+               ]
+          }
+     }
+}

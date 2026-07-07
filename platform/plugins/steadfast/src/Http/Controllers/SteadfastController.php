@@ -81,83 +81,83 @@ class SteadfastController extends BaseController
         $printPDFHelper = new PrintPDFHelper();
         $pdfData = $printPDFHelper->getDataForInvoiceTemplate($order);
 
-       
+
         if (!is_null($type) && $type == "label") {
             return view('plugins/steadfast::invoice.label', $pdfData);
         }
-       
+
         return view('plugins/steadfast::invoice.index', $pdfData);
     }
 
     public function bulkPrintInvoice(Request $request)
     {
         try {
-            
+
             // Fetch order IDs from the request
             $orderIds = $request->input('ids', []);
             $type = $request->input('type', null); // Fetch the 'type' input
-    
+
             // Validate that order IDs are provided and are in an array format
             if (empty($orderIds) || !is_array($orderIds)) {
                 return response()->json(['status' => false, 'message' => 'No order IDs provided or invalid format.'], 400);
             }
-    
+
             // Fetch all the orders based on the IDs
             $orders = Order::whereIn('id', $orderIds)->get();
-    
+
             // If no orders found, return an error response
             if ($orders->isEmpty()) {
                 return response()->json(['status' => false, 'message' => 'No orders found for the provided IDs.'], 404);
             }
-    
+
             $printPDFHelper = new PrintPDFHelper();
             $pdfData = [];
-    
+
             // Collect data for each order and convert to array
             foreach ($orders as $order) {
                 $pdfData[] = (array) $printPDFHelper->getDataForInvoiceTemplate($order);
             }
-    
-            $view = ($type == "label") 
-                    ? 'plugins/steadfast::invoice.bulk-label' 
+
+            $view = ($type == "label")
+                    ? 'plugins/steadfast::invoice.bulk-label'
                     : 'plugins/steadfast::invoice.bulk';
 
         // Render the appropriate view as HTML
             $renderedHtml = view($view, compact('pdfData'))->render();
-    
+
             // Return the rendered HTML as JSON
             return response()->json(['status' => true, 'html' => $renderedHtml], 200);
-    
+
         } catch (\Exception $e) {
             // Catch any errors and return a JSON response with the error message
             return response()->json(['status' => false, 'message' => 'An error occurred while fetching invoices.', 'error' => $e->getMessage()], 500);
         }
     }
-    
+
     public function createOrder(Request $request)
     {
         $ids = json_decode($request->input('ids'), true); // Decode as an array
         $amounts = json_decode($request->input('amounts'), true); // Decode as an array
-    
+
         if (empty($ids) || empty($amounts)) {
             return response()->json(['status' => false, 'message' => 'No orders or amounts provided.']);
         }
-    
+
         // Call the placeOrder method and pass the ids and amounts
         $response = $this->steadfastHandler->placeOrder($ids, $amounts);
-       
-       
-    
+
+
+
         // Check if the response indicates success or failure and return accordingly
         if ($response['status']) {
-           
+
             return response()->json([
                 'status' => false,
                 'message' => $response['message'],
                 'url'=> $this->httpResponse()->setMessage(trans($response['message']))
             ]);
         } else {
-          
+
             return response()->json([
                 'status' => false,
                 'message' => $response['message'],
@@ -204,7 +204,7 @@ class SteadfastController extends BaseController
     {
         try {
             $id = $request->input('id');
-            
+
             // Find the Steadfast record based on the provided id
             $steadfast = Steadfast::where('order_id', $id)->first();
 
@@ -214,7 +214,7 @@ class SteadfastController extends BaseController
             }
 
             return response()->json(['status' => false, 'message' => 'No error found for this order.']);
-            
+
         } catch (\Exception $e) {
             // Catch and handle any exceptions
             return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
@@ -237,10 +237,10 @@ class SteadfastController extends BaseController
                 'user_id' => Auth::id(),
             ]);
 
-          
+
         }
 
-        
+
 
     }
 
@@ -289,9 +289,9 @@ class SteadfastController extends BaseController
             $steadfast->stdf_delivery_status = $data['status'];
             $steadfast->save();
 
-            
+
                 $this->orderHistory($order,  $data);
-            
+
 
             return response()->json(['status' => true, 'message' => 'Order status updated successfully']);
         } catch (\Exception $e) {
@@ -334,11 +334,11 @@ class SteadfastController extends BaseController
             $shipment->status = "delivered";
             $shipment->save();
 
-          
 
 
 
-           
+
+
 
             OrderHistory::query()->create([
                 'action' => OrderHistoryActionEnum::CONFIRM_ORDER,
@@ -348,13 +348,13 @@ class SteadfastController extends BaseController
             ]);
 
             $payment->save();
-    
-           
+
+
         }
 
 
         if($data['status']=="partial_delivered"){
-            
+
             $order->is_confirmed = true;
             $order->save();
 
@@ -379,15 +379,15 @@ class SteadfastController extends BaseController
             $shipment->status = "completed";
             $shipment->save();
 
-            
+
             OrderHistory::query()->create([
                 'action' => OrderHistoryActionEnum::CONFIRM_ORDER,
                 'description' => trans('order_was_verified_by_was_confirmed_by_Steadfast'),
                 'order_id' => $order->getKey(),
                 'user_id' => 0,
             ]);
-    
-            
+
+
         }
 
         if($data['status']=="pending"){
@@ -413,7 +413,7 @@ class SteadfastController extends BaseController
                 'order_id' => $order->getKey(),
                 'user_id' => 0,
             ]);
-            
+
 
 
             $shipment = $order->shipment;
@@ -426,33 +426,33 @@ class SteadfastController extends BaseController
 
             $reason = "cancelled Steadfast";
             $reasonDescription = "cancelled by Steadfast";
-            
+
             $order->cancellation_reason = "cancelled Steadfast";
             $order->cancellation_reason_description = "cancelled by Steadfast";
-           
+
             $order->save();
 
-          
-    
+
+
             event(new OrderCancelledEvent($order, $reason, $reasonDescription));
-    
+
             foreach ($order->products as $orderProduct) {
                 $product = $orderProduct->product;
                 $product->quantity += $orderProduct->qty;
                 $product->save();
-    
+
                 if ($product->is_variation) {
                     $originalProduct = $product->original_product;
-    
+
                     if ($originalProduct->id != $product->id) {
                         $originalProduct->quantity += $orderProduct->qty;
                         $originalProduct->save();
                     }
                 }
-    
+
                 event(new ProductQuantityUpdatedEvent($product));
             }
-    
+
             if ($order->coupon_code && $order->user_id) {
                 Discount::getFacadeRoot()->afterOrderCancelled($order->coupon_code, $order->user_id);
             }
@@ -460,8 +460,8 @@ class SteadfastController extends BaseController
         }
 
 
-        
-        
+
+
     }
 
     public function fakeOrderCheck(Request $request)
@@ -470,52 +470,52 @@ class SteadfastController extends BaseController
         $phoneNumbers = $request->input('number');
         $cms = $request->input('cms');
         $api = $request->input('api');
-    
+
         // Convert phone numbers into an array if a single string is provided
         if (is_string($phoneNumbers)) {
             $phoneNumbers = preg_split('/[,\s]+/', $phoneNumbers, -1, PREG_SPLIT_NO_EMPTY);
         }
-    
+
         // Ensure CMS or API is selected
         if (!$cms && !$api) {
             return response()->json(['status' => false, 'message' => 'Please select at least one option (CMS or API).']);
         }
-    
+
         // Ensure phone numbers are provided
         if (empty($phoneNumbers)) {
             return response()->json(['status' => false, 'message' => 'Phone numbers are required and should be an array or string.']);
         }
-    
+
         $response = ['status' => true, 'data' => []];
-    
+
         foreach ($phoneNumbers as $phoneNumber) {
             $fphoneNumber = $this->normalizePhoneNumber($phoneNumber);
             $phoneResponse = ['phone' => $fphoneNumber, 'data' => []];
-    
+
             // Handle CMS Data
             if ($cms) {
                 $orders = Order::whereHas('shippingAddress', function ($query) use ($fphoneNumber) {
                     $query->where('phone', 'LIKE', '%' . $fphoneNumber);
                 })->with('shipment')->where('is_finished', 1)->get();
-    
+
                 $groupedOrders = $orders->groupBy(function ($order) {
                     return $order->shipment->shipping_company_name ?: 'Unknown';
                 });
-    
+
                 $cmsResult = [];
                 $cmsTotalOrders = 0;
                 $cmsCompletedOrders = 0;
                 $cmsCanceledOrders = 0;
-    
+
                 foreach ($groupedOrders as $shippingCompanyName => $orders) {
                     $totalOrders = $orders->count();
                     $completedOrders = $orders->where('status', OrderStatusEnum::COMPLETED)->count();
                     $canceledOrders = $orders->where('status', OrderStatusEnum::CANCELED)->count();
-    
+
                     $cmsTotalOrders += $completedOrders + $canceledOrders;
                     $cmsCompletedOrders += $completedOrders;
                     $cmsCanceledOrders += $canceledOrders;
-    
+
                     $cmsResult[] = [
                         'shipping_company_name' => $shippingCompanyName,
                         'total_orders' => $completedOrders + $canceledOrders,
@@ -523,11 +523,11 @@ class SteadfastController extends BaseController
                         'canceled_orders' => $canceledOrders,
                     ];
                 }
-    
+
                 $cmsSuccessRatio = ($cmsCompletedOrders + $cmsCanceledOrders) > 0
                     ? round(($cmsCompletedOrders / ($cmsCompletedOrders + $cmsCanceledOrders)) * 100, 2)
                     : 0;
-    
+
                 $phoneResponse['data']['cms'] = [
                     'orders' => $cmsResult,
                     'overall_stats' => [
@@ -538,7 +538,7 @@ class SteadfastController extends BaseController
                     ],
                 ];
             }
-    
+
             // Handle API Data
             if ($api) {
                 // Check if phone number is exactly 11 digits
@@ -548,7 +548,7 @@ class SteadfastController extends BaseController
                     try {
                         $steadfastConfig = SteadfastsConfig::first();
                         $authKey = $steadfastConfig->bdcourier_auth;
-    
+
                         // Check if API is enabled and if authKey exists
                         if (!$steadfastConfig->bdcourier_API || $steadfastConfig->bdcourier_API == 0) {
                             throw new \Exception('bdcourier_API is not enabled. Please enable it in settings.');
@@ -556,28 +556,28 @@ class SteadfastController extends BaseController
                         if (empty($authKey)) {
                             throw new \Exception('bdcourier Auth key is missing. Please provide it in settings.');
                         }
-    
+
                         // Proceed with API call
                         $apiResponse = $this->getApiData($fphoneNumber, $authKey);
-    
+
                         if (isset($apiResponse['courierData'])) {
                             $apiData = $apiResponse['courierData'];
-    
+
                             $apiResult = [];
                             $apiTotalOrders = 0;
                             $apiCompletedOrders = 0;
                             $apiCanceledOrders = 0;
-    
+
                             foreach ($apiData as $courier => $courierData) {
                                 if ($courier !== 'summary') {
                                     $totalOrders = $courierData['total_parcel'];
                                     $completedOrders = $courierData['success_parcel'];
                                     $canceledOrders = $courierData['cancelled_parcel'];
-    
+
                                     $apiTotalOrders += $totalOrders;
                                     $apiCompletedOrders += $completedOrders;
                                     $apiCanceledOrders += $canceledOrders;
-    
+
                                     $apiResult[] = [
                                         'shipping_company_name' => ucfirst($courier),
                                         'total_orders' => $totalOrders,
@@ -586,11 +586,11 @@ class SteadfastController extends BaseController
                                     ];
                                 }
                             }
-    
+
                             $apiSuccessRatio = $apiTotalOrders > 0
                                 ? round(($apiCompletedOrders / $apiTotalOrders) * 100, 2)
                                 : 0;
-    
+
                             $phoneResponse['data']['api'] = [
                                 'orders' => $apiResult,
                                 'overall_stats' => [
@@ -609,14 +609,14 @@ class SteadfastController extends BaseController
                     }
                 }
             }
-    
+
             // Add each phone's result independently
             $response['data'][] = $phoneResponse;
         }
-    
+
         return response()->json($response);
     }
-    
+
     private function normalizePhoneNumber($phone) {
         // Remove any spaces, dashes, or parentheses
         $phone = preg_replace('/[\s\-\(\)]+/', '', $phone);
@@ -679,13 +679,13 @@ class SteadfastController extends BaseController
         try {
             // Initialize API service
             $apiService = new SteadfastApiServices();
-    
+
             // Attempt to get the current balance
             $response = $apiService->getCurrentBalance();
-    
+
             // Return a successful response
             return $response;
-    
+
         } catch (\Exception $e) {
             // Catch any exception and return the error message
             return [
@@ -701,9 +701,9 @@ class SteadfastController extends BaseController
 
         dd( $response);
 
-    
+
 
     }
-  
-    
+
+
 }
