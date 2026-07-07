@@ -51,6 +51,11 @@
     }
 </style>
 
+@php
+    $itemsPerRow = get_products_per_row();
+    $itemsPerRowOnMobile = theme_option('ecommerce_products_per_row_mobile', 2);
+@endphp
+
 <div class="section">
     <div class="container">
         <div class="row">
@@ -60,9 +65,9 @@
                 </div>
             </div>
         </div>
-        <div class="row shop_container">
+        <div class="row shop_container row-cols-xxl-{{ $itemsPerRow }} row-cols-xl-{{ max(3, $itemsPerRow - 1) }} row-cols-lg-{{ max(2, $itemsPerRow - 2) }} row-cols-md-3 row-cols-sm-{{ $itemsPerRowOnMobile }} row-cols-{{ $itemsPerRowOnMobile }}">
             @for ($i = 0; $i < 12; $i++)
-                <div class="col-lg-3 col-md-4 col-6">
+                <div class="col">
                     <div class="product skeleton-product-item">
                         <div class="product_img skeleton-product-img">
                             <div class="skeleton-img skeleton-loading-bg"></div>

@@ -306,6 +306,7 @@ app()->booted(function (): void {
             return Theme::partial('shortcodes.all-products', [
                 'title' => $shortcode->title,
                 'products' => $products,
+                'shortcode' => $shortcode,
             ]);
         });
 
@@ -316,7 +317,16 @@ app()->booted(function (): void {
                     ->label(__('Title')))
                 ->add('per_page', NumberField::class, NumberFieldOption::make()
                     ->label(__('Number of products per page'))
-                    ->defaultValue(12));
+                    ->defaultValue(12))
+                ->add('products_per_row', SelectField::class, SelectFieldOption::make()
+                    ->label(__('Number of products per row'))
+                    ->choices([
+                        '' => __('Default (from theme options)'),
+                        3 => 3,
+                        4 => 4,
+                        5 => 5,
+                        6 => 6,
+                    ]));
         });
 
         shortcode()->registerLoadingState('all-products', Theme::getThemeNamespace('partials.shortcodes.all-products-skeleton'));
